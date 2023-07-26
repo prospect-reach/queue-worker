@@ -46,8 +46,6 @@ async function monitorQueue() {
 
     await uploadCompaniesAndLeads(records, data[0].url, data[0].domain, payload.template, payload.delay, payload.emailClass, payload.sendAt);
 
-    console.log(records);
-
     await setTimeout(1500);
 
     return await monitorQueue();
