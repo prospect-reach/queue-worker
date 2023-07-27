@@ -12,7 +12,7 @@ async function monitorQueue() {
     .select()
     .eq("task_type", "import_from_file")
     .match({state: "planned"})
-    .gt("start_at", new Date().toISOString())
+    .lt("start_at", new Date().toISOString())
     .limit(1);
 
   if (data.length > 0) {
@@ -45,6 +45,13 @@ async function monitorQueue() {
     const payload = JSON.parse(data[0].payload);
 
     await uploadCompaniesAndLeads(records, data[0].url, data[0].domain, payload.template, payload.delay, payload.emailClass, payload.sendAt);
+
+    for (let i = 0; i < data.length; i++) {
+      const {error} = await supabase.from("queue").update({state: "complete", finished_at: new Date().toISOString()}).eq("id", data[i].id);
+      if (error) {
+        console.log(error);
+      }
+    }
 
     await setTimeout(1500);
 
