@@ -16,7 +16,11 @@
     "csvtojson": "^2.0.10",
     "node-fetch": "^2.6.7",
     "nodemon": "^2.0.22",
-    "socket.io": "^4.6.1"
+    "socket.io": "^4.6.1",
+    "socket.io-client": "^4.7.2",
+    "websocket": "^1.0.34",
+    "winston": "^3.10.0",
+    "winston-telegram": "^2.6.0"
   },
   "engines": {
     "node": ">15"

@@ -5,8 +5,13 @@ const importFromFileToQueue = require("./importFromFile");
 const fetch = require("node-fetch");
 const csv = require("csvtojson");
 const {uploadCompaniesAndLeads} = require("./import");
+const logger = require("./logger");
+const {io: socket} = require("socket.io-client");
+
+const connection = socket("wss://upload-file-handler.onrender.com:443");
 
 async function monitorQueue() {
+  console.log(connection);
   const {data, error} = await supabase
     .from("queue")
     .select()
@@ -14,6 +19,10 @@ async function monitorQueue() {
     .match({state: "planned"})
     .lt("start_at", new Date().toISOString())
     .limit(1);
+
+  if (error) {
+    console.error(JSON.stringify(error));
+  }
 
   if (data.length > 0) {
     console.log("message", data.length + "records found");
@@ -38,6 +47,8 @@ async function monitorQueue() {
       trim: true,
     });
 
+    logger.info("Processing file: " + data[0].url.split(" - ")[1]);
+
     const records = await parser.fromString(await fileURL.text(), {
       defaultEncoding: "utf8",
     });
@@ -54,6 +65,8 @@ async function monitorQueue() {
     }
 
     await setTimeout(1500);
+
+    connection.emit("heartbeat", "ok");
 
     return await monitorQueue();
   }
