@@ -11,7 +11,8 @@ const {io: socket} = require("socket.io-client");
 const connection = socket("wss://upload-file-handler.onrender.com:443");
 
 async function monitorQueue() {
-  console.log(connection);
+  connection.emit("heartbeat", "ok");
+
   const {data, error} = await supabase
     .from("queue")
     .select()
@@ -65,8 +66,6 @@ async function monitorQueue() {
     }
 
     await setTimeout(1500);
-
-    connection.emit("heartbeat", "ok");
 
     return await monitorQueue();
   }
