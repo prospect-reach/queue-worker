@@ -3,9 +3,7 @@ const {httpServer, io} = require("./utils/socket");
 const monitorQueue = require("./utils/queue");
 const {setTimeout} = require("timers/promises");
 const logger = require("./utils/logger");
-const {io: socket} = require("socket.io-client");
-
-const connection = socket("ws://localhost:8080");
+const {connection} = require("./utils/socketClient");
 
 function logOnError(err) {
   console.log(`Uncaught Exception: ${err.message}`);
@@ -20,6 +18,8 @@ process.on("uncaughtException", (err) => {
 });
 
 httpServer.listen(3000, async () => {
+  connection.emit("server_started", `server_started`);
+  logger.info(`Background Queue Worker - ${process.env["MODE"]}Server started`);
   // await Promise.all([monitorQueue, heartbeat]);
   await monitorQueue();
 });
