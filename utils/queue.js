@@ -6,9 +6,7 @@ const fetch = require("node-fetch");
 const csv = require("csvtojson");
 const {uploadCompaniesAndLeads} = require("./import");
 const logger = require("./logger");
-const {io: socket} = require("socket.io-client");
-
-const connection = socket("wss://upload-file-handler.onrender.com:443");
+const { connection } = require("./socketClient");
 
 async function monitorQueue() {
   connection.emit("heartbeat", "ok");
@@ -23,6 +21,7 @@ async function monitorQueue() {
 
   if (error) {
     console.error(JSON.stringify(error));
+    logger.info("SUPABASE ERROR: " + JSON.stringify(error));
   }
 
   if (data.length > 0) {
@@ -65,7 +64,7 @@ async function monitorQueue() {
       }
     }
 
-    await setTimeout(1500);
+    await setTimeout(10000);
 
     return await monitorQueue();
   }
