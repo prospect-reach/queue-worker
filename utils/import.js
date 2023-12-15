@@ -1,7 +1,7 @@
 const supabase = require("./db");
 const {io} = require("./socket");
 const mail = require("./mail");
-const {uuid} = require("./uuidv4");
+const {uuid} = require("uuidv4");
 
 Date.prototype.addThreeDays = function () {
   var date = new Date(this.valueOf());

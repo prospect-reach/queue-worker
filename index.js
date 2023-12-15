@@ -1,3 +1,4 @@
+require("dotenv").config();
 const supabase = require("./utils/db");
 const {httpServer, io} = require("./utils/socket");
 const monitorQueue = require("./utils/queue");
