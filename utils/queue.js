@@ -34,16 +34,16 @@ async function monitorQueue() {
       }
     }
 
-    const _fileUrl = "public/" + data[0].url;
+    const _fileUrl = data[0].url;
 
-    const {data: fileURL, error: fileError} = await supabase.storage.from("reports").download("public/" + data[0].url);
+    const {data: fileURL, error: fileError} = await supabase.storage.from("reports").download(data[0].url);
 
     if (fileError) {
       console.log(fileError);
     }
 
     const parser = csv({
-      delimiter: [","],
+      delimiter: [",", ";"],
       trim: true,
     });
 
@@ -63,7 +63,6 @@ async function monitorQueue() {
         console.log(error);
       }
     }
-
     await setTimeout(10000);
 
     return await monitorQueue();

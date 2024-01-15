@@ -41,6 +41,8 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
   let weekdayPlusThree = date.addThreeDays();
   let weekdayPlusFour = date.addFourDays();
 
+  let lastCheckedDomainIsBlacklisted = ["", false];
+
   for (let entry of entries) {
     let company = {
       name: entry["Company"] ?? "",
@@ -60,16 +62,18 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
     const {data: companyRecord, error: companyError} = await supabase.from("target_companies").select().eq("name", company.name);
 
     if (companyError) {
-      console.log(companyError);
+      console.log("query", companyError);
     }
 
     let companyRef;
 
+    console.log("company", company);
+
     if (companyRecord.length < 1) {
-      const {data: companyRecord, error: companyError} = await supabase.from("target_companies").insert([company]).select();
+      const {data: companyRecord, error: companyError} = await supabase.from("target_companies").insert(company).select();
 
       if (companyError) {
-        console.log(companyError);
+        console.log("insert", companyError);
       }
 
       console.log(companyRecord);
@@ -79,6 +83,38 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
     }
 
     console.log("Company", companyRef);
+
+    let emailDomain = entry["Email"].split("@")[1];
+
+    if (emailDomain != lastCheckedDomainIsBlacklisted[0]) {
+      lastCheckedDomainIsBlacklisted[0] = emailDomain;
+
+      let {count: checkedDomain, error} = await supabase
+        .from("blacklist")
+        .select("*", {count: "exact", head: true})
+        .eq("blocked_domain_or_email", emailDomain);
+
+      console.log("CHECK DOMAIN BLACKLIST:", checkedDomain, error);
+
+      if (checkedDomain > 0) {
+        lastCheckedDomainIsBlacklisted[1] = true;
+      } else {
+        lastCheckedDomainIsBlacklisted[1] = false;
+      }
+    }
+
+    console.log("CHECK DOMAIN BLACKLIST:", lastCheckedDomainIsBlacklisted);
+
+    let emailIsBlacklisted = false;
+
+    if (lastCheckedDomainIsBlacklisted[1] == false) {
+      let {count, error} = await supabase.from("blacklist").select("*", {count: "exact", head: true}).eq("blocked_domain_or_email", entry["Email"]);
+      console.log("CHECK EMAIL BLACKLIST:", count, error);
+
+      if (count > 0) {
+        emailIsBlacklisted = true;
+      }
+    }
 
     let lead = {
       name: entry["Name"] + " " + entry["Last Name"],
@@ -98,16 +134,29 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
     let leadRecord;
 
     const {data: leadRecordDB, error: leadErrorDB} = await supabase.from("leads").select().eq("email", entry["Email"]);
+    console.log("FINDING LEAD", entry["Email"], leadRecordDB);
 
     if (leadRecordDB.length > 0) {
       leadRecord = leadRecordDB;
     } else {
       const {data: leadRecordDB, error: leadError} = await supabase.from("leads").insert([lead]).select();
+      console.log(leadRecordDB, leadError);
 
       leadRecord = leadRecordDB;
     }
 
-    if (!leadRecord[0].unsubscribed) {
+    let hasResponse = false;
+
+    const {count: emailReplies, error: emailRepliesErorr} = await supabase
+      .from("emails")
+      .select("id", {count: "exact", head: true})
+      .match({from_address: leadRecord[0].id, direction: 1});
+
+    console.log("EMAIL REPLIES", emailReplies, emailRepliesErorr);
+
+    if (emailReplies > 0) hasResponse = true;
+
+    if (!leadRecord[0].unsubscribed && lastCheckedDomainIsBlacklisted[1] == false && !emailIsBlacklisted && !hasResponse) {
       const {data: template, error: templateError} = await supabase.from("email_templates").select().eq("dynamic_template_id", _template);
 
       if (templateError) {
@@ -131,12 +180,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
           {
             to: [{email: leadRecord[0].email}],
 
-            // {subject: subject},
-            // text: textMessage,
-            // html: msg,
-
             custom_args: {
-              // subject: subject,
               conversation_id: conversationId,
               recipient_id: leadRecord[0].id,
               pr_domain: domain,
