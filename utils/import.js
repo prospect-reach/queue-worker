@@ -67,7 +67,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
 
     let companyRef;
 
-    console.log("company", company);
+    // console.log("company", company);
 
     if (companyRecord.length < 1) {
       const {data: companyRecord, error: companyError} = await supabase.from("target_companies").insert(company).select();
@@ -82,7 +82,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
       companyRef = companyRecord;
     }
 
-    console.log("Company", companyRef);
+    // console.log("Company", companyRef);
 
     let emailDomain = entry["Email"].split("@")[1];
 
@@ -134,13 +134,13 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
     let leadRecord;
 
     const {data: leadRecordDB, error: leadErrorDB} = await supabase.from("leads").select().eq("email", entry["Email"]);
-    console.log("FINDING LEAD", entry["Email"], leadRecordDB);
+    console.log("FINDING LEAD", entry["Email"], leadRecordDB[0].id);
 
     if (leadRecordDB.length > 0) {
       leadRecord = leadRecordDB;
     } else {
       const {data: leadRecordDB, error: leadError} = await supabase.from("leads").insert([lead]).select();
-      console.log(leadRecordDB, leadError);
+      // console.log(leadRecordDB, leadError);
 
       leadRecord = leadRecordDB;
     }
@@ -155,6 +155,11 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
     console.log("EMAIL REPLIES", emailReplies, emailRepliesErorr);
 
     if (emailReplies > 0) hasResponse = true;
+
+    console.log(
+      "SHOULD SEND EMAIL",
+      !leadRecord[0].unsubscribed && lastCheckedDomainIsBlacklisted[1] == false && !emailIsBlacklisted && !hasResponse
+    );
 
     if (!leadRecord[0].unsubscribed && lastCheckedDomainIsBlacklisted[1] == false && !emailIsBlacklisted && !hasResponse) {
       const {data: template, error: templateError} = await supabase.from("email_templates").select().eq("dynamic_template_id", _template);
@@ -211,16 +216,16 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
         template_id: _template,
       };
 
-      console.log(privateMsg);
+      // console.log(privateMsg);
 
       const dateString = ((date) => date.toLocaleDateString() + " - " + date.toLocaleTimeString())(new Date(sendAt * 1000));
 
       io.emit("message", "Contact " + lead.name + " saved. Company: " + companyRef[0].name + ". Scheduled at " + dateString);
 
-      const response = await mail.send(privateMsg, false, (err, result) => {
-        if (err) console.log(err.response?.body);
-        console.log(result);
-      });
+      // const response = await mail.send(privateMsg, false, (err, result) => {
+      //   if (err) console.log(err.response?.body);
+      //   console.log(result);
+      // });
 
       io.emit("message", "Email to " + lead.name + " scheduled!");
       counter++;
