@@ -210,7 +210,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
             },
 
             headers: {
-              "Message-ID": conversationId,
+              "Message-ID": crypto.createHash("md5").update(leadRecord[0].email).digest("hex"),
             },
 
             send_at: sendAt,
