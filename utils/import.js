@@ -2,6 +2,7 @@ const supabase = require("./db");
 const {io} = require("./socket");
 const mail = require("./mail");
 const {uuid} = require("uuidv4");
+var crypto = require("crypto");
 
 Date.prototype.addThreeDays = function () {
   var date = new Date(this.valueOf());
@@ -172,6 +173,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
       }
 
       const sendAt = startTime + Number(delay) * counter;
+
       let conversationId = uuid();
 
       const privateMsg = {
@@ -189,7 +191,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
             to: [{email: leadRecord[0].email}],
 
             custom_args: {
-              conversation_id: conversationId,
+              conversation_id: crypto.createHash("md5").update(template[0].from_address).digest("hex"),
               recipient_id: leadRecord[0].id,
               pr_domain: domain,
               dynamic_template_id: _template,
