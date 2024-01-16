@@ -59,8 +59,9 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
       domain: domain,
     };
 
-    const {data: companyRecord, error: companyError} = await supabase.from("target_companies").select().eq("name", company.name);
+    const {data: existingCompanyRecord, error: companyError} = await supabase.from("target_companies").select().eq("name", company.name);
 
+    console.log("COMPANY FOUND", existingCompanyRecord);
     if (companyError) {
       console.log("query", companyError);
     }
@@ -69,7 +70,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
 
     // console.log("company", company);
 
-    if (companyRecord.length < 1) {
+    if (existingCompanyRecord.length < 1) {
       const {data: companyRecord, error: companyError} = await supabase.from("target_companies").insert(company).select();
 
       if (companyError) {
@@ -79,7 +80,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
       console.log(companyRecord);
       companyRef = companyRecord;
     } else {
-      companyRef = companyRecord;
+      companyRef = existingCompanyRecord;
     }
 
     // console.log("Company", companyRef);
