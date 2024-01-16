@@ -19,7 +19,7 @@ async function monitorQueue() {
     .lt("start_at", new Date().toISOString())
     .limit(1);
 
-  if (error) {
+  if (error && process.env.NODE_ENV == "PROD") {
     console.error(JSON.stringify(error));
     logger.info("SUPABASE ERROR: " + JSON.stringify(error));
   }
@@ -47,7 +47,9 @@ async function monitorQueue() {
       trim: true,
     });
 
-    logger.info("Processing file: " + data[0].url.split(" - ")[1]);
+    if (process.env.NODE_ENV == "PROD") {
+      logger.info("Processing file: " + data[0].url.split(" - ")[1]);
+    }
 
     const records = await parser.fromString(await fileURL.text(), {
       defaultEncoding: "utf8",

@@ -134,13 +134,15 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
     let leadRecord;
 
     const {data: leadRecordDB, error: leadErrorDB} = await supabase.from("leads").select().eq("email", entry["Email"]);
-    console.log("FINDING LEAD", entry["Email"], leadRecordDB[0].id);
+    if (leadErrorDB) console.log("FINDING LEAD ERROR", leadErrorDB);
+
+    console.log("FINDING LEAD", entry["Email"], leadRecordDB[0]?.id);
 
     if (leadRecordDB.length > 0) {
       leadRecord = leadRecordDB;
     } else {
       const {data: leadRecordDB, error: leadError} = await supabase.from("leads").insert([lead]).select();
-      // console.log(leadRecordDB, leadError);
+      console.log("INSERTING LEAD", leadRecordDB, leadError);
 
       leadRecord = leadRecordDB;
     }
@@ -163,7 +165,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
 
     if (!leadRecord[0].unsubscribed && lastCheckedDomainIsBlacklisted[1] == false && !emailIsBlacklisted && !hasResponse) {
       const {data: template, error: templateError} = await supabase.from("email_templates").select().eq("dynamic_template_id", _template);
-
+      console.log("FOUND EMAIL TEMPLATE", template, templateError);
       if (templateError) {
         io.emit("message", "Template not found");
       }
