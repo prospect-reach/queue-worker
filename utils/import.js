@@ -174,8 +174,6 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
 
       const sendAt = startTime + Number(delay) * counter;
 
-      let conversationId = uuid();
-
       const privateMsg = {
         from: {email: template[0].from_address, name: template[0].from_name},
         reply_to: {email: template[0].from_address},
@@ -191,7 +189,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
             to: [{email: leadRecord[0].email}],
 
             custom_args: {
-              conversation_id: crypto.createHash("md5").update(template[0].from_address).digest("hex"),
+              conversation_id: crypto.createHash("md5").update(leadRecord[0].email).digest("hex"),
               recipient_id: leadRecord[0].id,
               pr_domain: domain,
               dynamic_template_id: _template,
