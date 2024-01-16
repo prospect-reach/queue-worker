@@ -166,7 +166,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
 
     if (!leadRecord[0].unsubscribed && lastCheckedDomainIsBlacklisted[1] == false && !emailIsBlacklisted && !hasResponse) {
       const {data: template, error: templateError} = await supabase.from("email_templates").select().eq("dynamic_template_id", _template);
-      console.log("FOUND EMAIL TEMPLATE", template, templateError);
+      console.log("FOUND EMAIL TEMPLATE", template[0].dynamic_template_id, templateError);
       if (templateError) {
         io.emit("message", "Template not found");
       }
@@ -225,10 +225,10 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
 
       io.emit("message", "Contact " + lead.name + " saved. Company: " + companyRef[0].name + ". Scheduled at " + dateString);
 
-      // const response = await mail.send(privateMsg, false, (err, result) => {
-      //   if (err) console.log(err.response?.body);
-      //   console.log(result);
-      // });
+      const response = await mail.send(privateMsg, false, (err, result) => {
+        if (err) console.log(err.response?.body);
+        console.log(result);
+      });
 
       io.emit("message", "Email to " + lead.name + " scheduled!");
       counter++;
