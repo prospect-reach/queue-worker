@@ -207,6 +207,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
               currentDay,
               weekdayPlusThree,
               weekdayPlusFour,
+              firstName: leadRecord[0].name.split(" ")[0],
             },
 
             headers: {
