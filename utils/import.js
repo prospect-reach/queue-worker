@@ -208,6 +208,8 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
               weekdayPlusThree,
               weekdayPlusFour,
               firstName: leadRecord[0].name.split(" ")[0],
+              websiteDomain: companyRef[0].website,
+              country: companyRef[0].country,
             },
 
             headers: {
