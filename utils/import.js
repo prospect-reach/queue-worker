@@ -201,7 +201,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
               name: leadRecord[0].name,
               company: companyRef[0].name,
               position: leadRecord[0].position,
-              industry: companyRef[0].industries,
+              industry: companyRef[0]?.industries[0],
               email: leadRecord[0].email,
               greeting,
               followUpAt,
