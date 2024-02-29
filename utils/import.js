@@ -47,17 +47,18 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
   for (let entry of entries) {
     let company = {
       name: entry["Company"] ?? "",
-      website: entry["Website"] ?? "",
+      website: entry["websiteDomain"] ?? "",
       company_facebook: entry["Facebook Url"] ?? "",
       company_twitter: entry["Twitter Url"] ?? "",
       company_linkedin: entry["Company Linkedin Url"] ?? "",
       address: entry["Company Address"] ?? "",
       city: entry["Company City"] ?? "",
       state: entry["Company State"] ?? "",
-      country: entry["Company Country"] ?? "",
+      country: entry["Country"] ?? "",
       size: getCompanySize(entry["Size"]) ?? "",
       industries: [entry["Industry"]] ?? "",
       domain: domain,
+      product_name: entry["productname"] ?? "",
     };
 
     const {data: existingCompanyRecord, error: companyError} = await supabase.from("target_companies").select().eq("name", company.name);
@@ -210,6 +211,7 @@ async function uploadCompaniesAndLeads(entries, fileName, domain, _template, del
               firstName: leadRecord[0].name.split(" ")[0],
               websiteDomain: companyRef[0].website,
               country: companyRef[0].country,
+              productName: companyRef[0].product_name,
             },
 
             headers: {
